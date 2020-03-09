@@ -1,0 +1,6 @@
+C:\Users\phil2643\source\repos\battleship\battleship\bin\Debug\battleship.exe.config
+C:\Users\phil2643\source\repos\battleship\battleship\bin\Debug\battleship.exe
+C:\Users\phil2643\source\repos\battleship\battleship\bin\Debug\battleship.pdb
+C:\Users\phil2643\source\repos\battleship\battleship\obj\Debug\battleship.csprojAssemblyReference.cache
+C:\Users\phil2643\source\repos\battleship\battleship\obj\Debug\battleship.exe
+C:\Users\phil2643\source\repos\battleship\battleship\obj\Debug\battleship.pdb
