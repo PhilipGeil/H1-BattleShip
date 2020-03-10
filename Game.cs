@@ -20,19 +20,10 @@ namespace battleship
 
         public Game() { }
         /// <summary>
-        /// Place a ship
-        /// </summary>
-        /// <param name="ship">The ship to place</param>
-        /// <param name="pos">The position of the placed ship</param>
-        public void SetShips(Ship ship, List<string> pos)
-        {
-            ship.position = pos;
-        }
-        /// <summary>
         /// Hits a ship
         /// </summary>
         /// <param name="ship"></param>
-        public void HitShip(Ship ship)
+        void HitShip(Ship ship)
         {
             ship.Health--;
             if (ship.Health == 0)
@@ -142,7 +133,9 @@ namespace battleship
                 }
             }
         }
-
+        /// <summary>
+        /// Gets the avaliable positions
+        /// </summary>
         public List<string> GetPositionOptions(Ship ship, string startPos)
         {
             int chosenLetter = digits.IndexOf(startPos.ToCharArray()[0].ToString()) + 1;

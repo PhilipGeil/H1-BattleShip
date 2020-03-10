@@ -78,7 +78,11 @@ namespace battleship
 
             Console.ReadKey();
         }
-
+        /// <summary>
+        /// Prints the given board, with the right types
+        /// </summary>
+        /// <param name="board">the board to display</param>
+        /// <param name="player">the player, whos board shall be printed</param>
         static void PrintBoard(Board board, Player player)
         {
             game.SetHits(player.playerHits, board);
@@ -126,7 +130,10 @@ namespace battleship
                 Console.WriteLine();
             }
         }
-
+        /// <summary>
+        /// Method used for placing the users ships on the board
+        /// </summary>
+        /// <param name="board"></param>
         static void SetShips(Board board)
         {
             foreach (Ship ship in game.player.playerShips)
@@ -183,6 +190,10 @@ namespace battleship
                 }
             }
         }
+        /// <summary>
+        /// Prints out the given character, and the right color
+        /// </summary>
+        /// <param name="character">The character to print out</param>
         static void PrintOut(string character)
         {
             switch (character)
