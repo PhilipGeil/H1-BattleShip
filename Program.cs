@@ -12,49 +12,83 @@ namespace battleship
         static List<string> digits = new List<string>() { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
         static void Main(string[] args)
         {
+            game.computer.Name = "Computer";
             Console.SetBufferSize(200, 200);
             Console.SetWindowSize(100, 50);
+            Console.WriteLine("Welcome to battleship");
+            Console.WriteLine("Please enter your name: ");
+            game.player.Name = Console.ReadLine();
+            Console.Clear();
             Board board = new Board();
             Board enemyBoard = new Board();
             board.CreateBoard();
             enemyBoard.CreateBoard();
             game.PlaceEnemyShips();
             SetShips(board);
-            while (!game.CheckForPlayerOneWinner() && !game.CheckForPlayerTwoWinner())
+            while (!game.CheckForWinner(game.player) && !game.CheckForWinner(game.computer))
             {
                 Console.Clear();
                 Console.WriteLine("Your board");
-                PrintBoard(board);
+                PrintBoard(board, game.player);
                 Console.WriteLine();
                 Console.WriteLine("Enemy board");
-                PrintEnemyBoard(enemyBoard);
+                PrintBoard(enemyBoard, game.computer);
                 Console.WriteLine("Enter the position you wish to hit");
-                if (game.CheckForPlayerOneWinner())
+                if (game.CheckForWinner(game.player))
                 {
                     Console.Clear();
-                    Console.WriteLine("Player 1 has won the game");
+                    Console.WriteLine("{0} has won the game", game.computer.Name);
                 }
-                else if (game.CheckForPlayerTwoWinner())
+                else if (game.CheckForWinner(game.computer))
                 {
                     Console.Clear();
-                    Console.WriteLine("The computer won");
+                    Console.WriteLine("{0} has won the game", game.player.Name);
                 }
                 else
                 {
-                    game.playerOneHits.Add(Console.ReadLine().ToUpper());
-                    game.EnemyHit();
+                    bool check = false;
+                    while (!check)
+                    {
+                        string startPos = Console.ReadLine().ToUpper();
+                        if (digits.Contains(startPos.ToCharArray()[0].ToString()))
+                        {
+                            if (startPos.ToCharArray().Length == 2)
+                            {
+                                if (Convert.ToInt32(startPos.ToCharArray()[1].ToString()) >= 1 && Convert.ToInt32(startPos.ToCharArray()[1].ToString()) <= 9)
+                                {
+                                    check = true;
+                                }
+                            }
+                            else if (startPos.ToCharArray().Length == 3)
+                            {
+                                if (Convert.ToInt32(startPos.ToCharArray()[1].ToString() + startPos.ToCharArray()[2].ToString()) == 10)
+                                {
+                                    check = true;
+                                }
+                            }
+                        }
+                        if (check)
+                        {
+                            game.computer.playerHits.Add(startPos);
+                            game.EnemyHit();
+                        }
+                    }
                 }
             }
 
             Console.ReadKey();
         }
 
-        static void PrintBoard(Board board)
+        static void PrintBoard(Board board, Player player)
         {
-            SetHits(game.playerTwoHits, board);
-            foreach (Ship ship in game.playerOneShips)
+            game.SetHits(player.playerHits, board);
+            foreach (Ship ship in player.playerShips)
             {
-                SetShip(ship, board);
+                string sunkenShip = game.SetShip(ship, board);
+                if (sunkenShip != null)
+                {
+                    Console.WriteLine(sunkenShip);
+                }
             }
             Console.Write(" ");
             for (int i = 1; i < 11; i++)
@@ -76,7 +110,7 @@ namespace battleship
                     {
                         PrintOut("X");
                     }
-                    else if (board.fields[i][j].Ship)
+                    else if (board.fields[i][j].Ship && player.Name != "Computer")
                     {
                         PrintOut("S");
                     }
@@ -95,197 +129,60 @@ namespace battleship
 
         static void SetShips(Board board)
         {
-            foreach (Ship ship in game.playerOneShips)
+            foreach (Ship ship in game.player.playerShips)
             {
-                Console.Clear();
-                PrintBoard(board);
-                Console.WriteLine("Choose start position for {0}, which has the size of {1}", ship.Name, ship.Size);
-                string startPos = Console.ReadLine().ToUpper();
-                Console.WriteLine("Good choise, now choose the end position for it");
-                int chosenLetter = digits.IndexOf(startPos.ToCharArray()[0].ToString()) + 1;
-                double chosenNumb = char.GetNumericValue(startPos.ToCharArray()[1]);
-                List<string> options = new List<string>();
-                if (startPos.ToCharArray().Length == 3)
+                bool check = false;
+                while (!check)
                 {
-                    chosenNumb = int.Parse((char.GetNumericValue(startPos.ToCharArray()[1]).ToString() + (char.GetNumericValue(startPos.ToCharArray()[2]).ToString())));
-                }
-                if (chosenLetter - ship.Size >= 0)
-                {
-                    options.Add(digits[chosenLetter - ship.Size].ToString() + chosenNumb.ToString());
-                }
-                if (chosenLetter + ship.Size - 2 <= 9)
-                {
-                    options.Add(digits[ship.Size + chosenLetter - 2].ToString() + chosenNumb.ToString());
-                }
-                if (chosenNumb - ship.Size >= 0)
-                {
-                    options.Add(digits[chosenLetter - 1] + (chosenNumb - ship.Size + 1).ToString());
-                }
-                if (chosenNumb + ship.Size - 1 <= 9)
-                {
-                    options.Add(digits[chosenLetter - 1] + (chosenNumb + ship.Size - 1).ToString());
-                }
-                for (int i = 0; i < options.Count; i++)
-                {
-                    Console.WriteLine("{0}: {1}", i + 1, options[i]);
-                }
-                string endPos = options[int.Parse(Console.ReadLine()) - 1];
-                InsertPosition(startPos, endPos, ship);
-            }
-        }
-
-        static void InsertPosition(string start, string end, Ship ship)
-        {
-            //Store letters and numbers in variables for easy use
-            string startLetter = start.ToCharArray()[0].ToString();
-            string endLetter = end.ToCharArray()[0].ToString();
-            int startNumber = int.Parse((start.ToCharArray()[1]).ToString());
-            int endNumber = int.Parse((end.ToCharArray()[1]).ToString());
-            //Check if the number is 10
-            if (start.ToCharArray().Length == 3)
-            {
-                startNumber = int.Parse((start.ToCharArray()[1]).ToString() + (start.ToCharArray()[2]).ToString());
-            }
-            if (end.ToCharArray().Length == 3)
-            {
-                endNumber = int.Parse((end.ToCharArray()[1]).ToString() + (end.ToCharArray()[2]).ToString());
-            }
-            //Check if the letters is the same
-            if (startLetter == endLetter)
-            {
-                if (startNumber > endNumber)
-                {
-                    while (startNumber >= endNumber)
+                    Console.Clear();
+                    PrintBoard(board, game.player);
+                    Console.WriteLine("Choose start position for {0}, which has the size of {1}", ship.Name, ship.Size);
+                    string startPos = Console.ReadLine().ToUpper();
+                    if (digits.Contains(startPos.ToCharArray()[0].ToString()))
                     {
-                        ship.position.Add((start.ToCharArray()[0]).ToString() + startNumber.ToString());
-                        startNumber--;
+                        if (startPos.ToCharArray().Length == 2)
+                        {
+                            if (Convert.ToInt32(startPos.ToCharArray()[1].ToString()) >= 1 && Convert.ToInt32(startPos.ToCharArray()[1].ToString()) <= 9)
+                            {
+                                check = true;
+                            }
+                        }
+                        else if (startPos.ToCharArray().Length == 3)
+                        {
+                            if (Convert.ToInt32(startPos.ToCharArray()[1].ToString() + startPos.ToCharArray()[2].ToString()) == 10)
+                            {
+                                check = true;
+                            }
+                        }
                     }
-                }
-                else
-                {
-                    while (startNumber <= endNumber)
+                    if (check)
                     {
-                        ship.position.Add((start.ToCharArray()[0]).ToString() + startNumber.ToString());
-                        startNumber++;
-                    }
-                }
-            }
-            else
-            {
-                int startIndex = digits.IndexOf(startLetter);
-                int endIndex = digits.IndexOf(endLetter);
-                if (startIndex > endIndex)
-                {
-                    while (startIndex >= endIndex)
-                    {
-                        ship.position.Add(digits[startIndex] + startNumber.ToString());
-                        startIndex--;
-                    }
-                }
-                else
-                {
-                    while (startIndex <= endIndex)
-                    {
-                        ship.position.Add(digits[startIndex] + startNumber.ToString());
-                        startIndex++;
+                        Console.WriteLine("Good choise, now choose the end position for it");
+                        List<string> options = game.GetPositionOptions(ship, startPos);
+                        if (options.Count == 1)
+                        {
+                            string endPos = options[0];
+                            game.InsertPosition(startPos, endPos, ship);
+                            check = true;
+                        }
+                        else if (options.Count > 0)
+                        {
+                            for (int i = 0; i < options.Count; i++)
+                            {
+                                Console.WriteLine("{0}: {1}", i + 1, options[i]);
+                            }
+                            string endPos = options[int.Parse(Console.ReadLine()) - 1];
+                            game.InsertPosition(startPos, endPos, ship);
+                            check = true;
+                        }
+                        else
+                        {
+                            check = false;
+                        }
                     }
                 }
             }
         }
-        static void PrintEnemyBoard(Board board)
-        {
-            SetHits(game.playerOneHits, board);
-            foreach (Ship ship in game.playerTwoShips)
-            {
-                SetShip(ship, board);
-            }
-            Console.Write(" ");
-            for (int i = 1; i < 11; i++)
-            {
-                Console.Write("  " + i.ToString() + "  ");
-            }
-            Console.WriteLine();
-            Console.WriteLine();
-            for (int i = 0; i < board.fields.Count; i++)
-            {
-                Console.Write(digits[i]);
-                for (int j = 0; j < board.fields[i].Count; j++)
-                {
-                    if (board.fields[i][j].Ship && board.fields[i][j].Hit)
-                    {
-                        PrintOut("H");
-                    }
-                    else if (board.fields[i][j].Hit)
-                    {
-                        PrintOut("X");
-                    }
-                    else
-                    {
-                        PrintOut("O");
-
-                    }
-
-
-                }
-                Console.WriteLine();
-                Console.WriteLine();
-            }
-        }
-
-        static void SetShip(Ship ship, Board board)
-        {
-            List<int> boatDigitIndex = new List<int>();
-            List<double> boatNumbIndex = new List<double>();
-            ship.Health = ship.Size;
-            foreach (string item in ship.position)
-            {
-                int letterIndex = digits.IndexOf(item.ToCharArray()[0].ToString());
-                double numbIndex = char.GetNumericValue(item.ToCharArray()[1]);
-                boatDigitIndex.Add(letterIndex);
-                if (item.ToCharArray().Length == 3)
-                {
-                    numbIndex = double.Parse((item.ToCharArray()[1]).ToString() + (item.ToCharArray()[2]).ToString());
-
-                }
-                boatNumbIndex.Add(numbIndex);
-                if (board.fields[letterIndex][Convert.ToInt32(numbIndex) - 1].Hit)
-                {
-                    game.HitShip(ship);
-                }
-            }
-            if (ship.Sunk && !game.sunkenShips.Contains(ship))
-            {
-                Console.WriteLine("{0} has just been shot to the bottom of the ocean!", ship.Name);
-                game.sunkenShips.Add(ship);
-            }
-            for (int i = 0; i < boatDigitIndex.Count; i++)
-            {
-                board.fields[boatDigitIndex[i]][Convert.ToInt32(boatNumbIndex[i] - 1)].Ship = true;
-            }
-        }
-
-        static void SetHits(List<string> hits, Board board)
-        {
-            List<int> hitDigitIndex = new List<int>();
-            List<double> hitNumbIndex = new List<double>();
-            foreach (string pos in hits)
-            {
-                hitDigitIndex.Add(digits.IndexOf(pos.ToCharArray()[0].ToString()));
-                if (pos.ToCharArray().Length == 3)
-                {
-                    hitNumbIndex.Add(double.Parse((pos.ToCharArray()[1]).ToString() + (pos.ToCharArray()[2]).ToString()));
-                }
-                else
-                {
-                    hitNumbIndex.Add(char.GetNumericValue(pos.ToCharArray()[1]));
-                }
-            }
-            for (int i = 0; i < hitDigitIndex.Count; i++)
-            {
-                board.fields[hitDigitIndex[i]][Convert.ToInt32(hitNumbIndex[i] - 1)].Hit = true;
-            }
-        }
-
         static void PrintOut(string character)
         {
             switch (character)
